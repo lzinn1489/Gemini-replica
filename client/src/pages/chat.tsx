@@ -49,13 +49,14 @@ export default function ChatPage() {
   // Fetch conversations
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery<Conversation[]>({
     queryKey: ["/api/conversations"],
-    refetchInterval: 5000, // Refresh every 5 seconds
+    refetchInterval: 2000, // Refresh every 2 seconds
   });
 
   // Fetch messages for current conversation
   const { data: messages = [], isLoading: messagesLoading } = useQuery<Message[]>({
     queryKey: ["/api/conversations", currentConversationId, "messages"],
     enabled: !!currentConversationId,
+    refetchInterval: 1000, // Refresh every 1 second for messages
   });
 
   // Ensure messages is always an array
@@ -101,14 +102,20 @@ export default function ChatPage() {
       const res = await chatApi.sendMessage(params.conversationId, params.content);
       return res;
     },
-    onSuccess: (data, variables) => {
-      // Invalidate both conversations list and specific conversation messages
-      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      queryClient.invalidateQueries({ 
+    onSuccess: async (data, variables) => {
+      // Clear the input immediately
+      setNewMessage("");
+      
+      // Invalidate and refetch queries to update the UI
+      await queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      await queryClient.invalidateQueries({ 
         queryKey: ["/api/conversations", variables.conversationId, "messages"] 
       });
-      // Clear the input
-      setNewMessage("");
+      
+      // Force a refetch to ensure immediate update
+      queryClient.refetchQueries({ 
+        queryKey: ["/api/conversations", variables.conversationId, "messages"] 
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -135,12 +142,12 @@ export default function ChatPage() {
       setNewMessage("");
       
       createConversationMutation.mutate(title, {
-        onSuccess: (conversation) => {
+        onSuccess: async (conversation) => {
           // Set the current conversation ID immediately
           setCurrentConversationId(conversation.id);
           
           // Force refresh conversations list
-          queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+          await queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
           
           // Send the message after conversation is created
           sendMessageMutation.mutate({
