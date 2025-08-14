@@ -78,7 +78,6 @@ export default function ChatPage() {
     },
     onSuccess: (conversation) => {
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
-      setCurrentConversationId(conversation.id);
       toast({
         title: "Nova conversa criada",
         description: "Você pode começar a conversar agora!",
@@ -103,7 +102,10 @@ export default function ChatPage() {
       queryClient.invalidateQueries({ 
         queryKey: ["/api/conversations", variables.conversationId, "messages"] 
       });
-      setNewMessage("");
+      // Only clear if not already cleared (to avoid clearing when creating new conversation)
+      if (newMessage) {
+        setNewMessage("");
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -126,13 +128,23 @@ export default function ChatPage() {
       const messageContent = newMessage.trim();
       const title = messageContent.length > 50 ? messageContent.substring(0, 50) + "..." : messageContent;
       
+      // Clear the input immediately to prevent multiple submissions
+      setNewMessage("");
+      
       createConversationMutation.mutate(title, {
         onSuccess: (conversation) => {
+          // Set the current conversation ID immediately
+          setCurrentConversationId(conversation.id);
+          
           // Send the message after conversation is created
           sendMessageMutation.mutate({
             conversationId: conversation.id,
             content: messageContent,
           });
+        },
+        onError: () => {
+          // Restore the message if conversation creation fails
+          setNewMessage(messageContent);
         }
       });
       return;
