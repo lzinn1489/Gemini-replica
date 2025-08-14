@@ -111,21 +111,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: "user",
       });
 
-      // Call Catalyst IA API
-      const apiUrl = `https://zero-two-apis.com.br/catalyst/texto/imagem?query=${encodeURIComponent(content)}&apikey=mdzbackpoha01`;
+      // Call Google Gemini API
+      const { GoogleGenerativeAI } = require("@google/generative-ai");
+      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
       
       try {
-        const response = await fetch(apiUrl);
-        const data = await response.json();
-
-        if (!response.ok || !data.status) {
-          throw new Error(data.message || "API request failed");
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        
+        // Get conversation context for better responses
+        const messages = await storage.getMessages(conversationId);
+        const contextMessages = messages.slice(-10); // Last 10 messages for context
+        
+        let prompt = content;
+        if (contextMessages.length > 1) {
+          const context = contextMessages.slice(0, -1).map(msg => 
+            `${msg.role === 'user' ? 'Usuário' : 'Assistente'}: ${msg.content}`
+          ).join('\n');
+          prompt = `Contexto da conversa:\n${context}\n\nPergunta atual: ${content}\n\nResponda em português brasileiro de forma natural e útil:`;
+        } else {
+          prompt = `Responda em português brasileiro de forma natural e útil: ${content}`;
         }
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const aiResponse = response.text();
 
         // Create AI response message
         const aiMessage = await storage.createMessage({
           conversationId,
-          content: data.resposta || "Desculpe, não consegui processar sua solicitação.",
+          content: aiResponse || "Desculpe, não consegui processar sua solicitação.",
           role: "assistant",
         });
 
