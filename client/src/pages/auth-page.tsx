@@ -135,11 +135,11 @@ export default function AuthPage() {
 
   const benefits = [
     "Interface moderna e intuitiva",
-    "Respostas contextuais e precisas",
+    "Suporte completo em português brasileiro",
     "Geração de imagens de alta qualidade",
     "Histórico de conversas organizado",
-    "Suporte a múltiplas sessões",
-    "Atualizações constantes da IA"
+    "Suporte a múltiplas sessões simultâneas",
+    "Atualizações automáticas da IA"
   ];
 
   return (
@@ -162,17 +162,17 @@ export default function AuthPage() {
             {/* Header */}
             <div className="text-center xl:text-left space-y-6">
               <div className="flex items-center justify-center xl:justify-start gap-4 mb-8 animate-slide-in-left">
-                <div className="relative animate-float">
-                  <div className="h-16 w-16 bg-gradient-to-br from-primary via-primary/80 to-secondary rounded-2xl flex items-center justify-center shadow-2xl animate-glow">
-                    <Bot className="h-8 w-8 text-white" />
+                <div className="relative animate-floating">
+                  <div className="h-16 w-16 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-2xl animate-glow">
+                    <Brain className="h-8 w-8 text-white" />
                   </div>
-                  <div className="absolute -top-2 -right-2 h-6 w-6 bg-primary rounded-full flex items-center justify-center animate-bounce-gentle">
+                  <div className="absolute -top-2 -right-2 h-6 w-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-bounce-gentle shadow-lg">
                     <Sparkles className="h-3 w-3 text-white animate-pulse" />
                   </div>
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold gradient-text">Catalyst IA</h1>
-                  <p className="text-sm text-muted-foreground">Assistente IA para apresentações</p>
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Catalyst IA</h1>
+                  <p className="text-sm text-gray-400">Plataforma de Inteligência Artificial</p>
                 </div>
               </div>
 
@@ -189,19 +189,45 @@ export default function AuthPage() {
                   gere imagens impressionantes e explore possibilidades ilimitadas.
                 </p>
                 
+                {/* Botões de ação rápida */}
+                <div className="flex flex-col sm:flex-row gap-4 mt-8 max-w-md mx-auto xl:mx-0">
+                  <Button 
+                    onClick={() => {
+                      document.getElementById('auth-form')?.scrollIntoView({behavior: 'smooth'});
+                      const loginTab = document.querySelector('[value="login"]') as HTMLElement;
+                      if (loginTab) loginTab.click();
+                    }}
+                    className="flex-1 h-12 text-base font-semibold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
+                  >
+                    <LogIn className="mr-2 h-5 w-5" />
+                    Fazer Login
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      document.getElementById('auth-form')?.scrollIntoView({behavior: 'smooth'});
+                      const registerTab = document.querySelector('[value="register"]') as HTMLElement;
+                      if (registerTab) registerTab.click();
+                    }}
+                    className="flex-1 h-12 text-base font-semibold bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
+                  >
+                    <UserPlus className="mr-2 h-5 w-5" />
+                    Criar Conta
+                  </Button>
+                </div>
+                
                 {/* CTA pills */}
-                <div className="flex flex-wrap gap-4 mt-8">
+                <div className="flex flex-wrap gap-4 mt-8 justify-center xl:justify-start">
                   <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm text-white border border-white/20">
                     <Crown className="inline w-4 h-4 mr-2 text-yellow-400" />
-                    Premium AI Experience
+                    Experiência Premium
                   </div>
                   <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm text-white border border-white/20">
                     <Rocket className="inline w-4 h-4 mr-2 text-blue-400" />
-                    Lightning Fast
+                    Ultra Rápido
                   </div>
                   <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm text-white border border-white/20">
                     <Heart className="inline w-4 h-4 mr-2 text-red-400" />
-                    Made with Love
+                    Feito com Amor
                   </div>
                 </div>
               </div>
@@ -278,7 +304,7 @@ export default function AuthPage() {
           {/* Auth Form - Takes less space */}
           <div className="xl:col-span-2 flex items-center justify-center">
             <div className="w-full max-w-md animate-slide-up">
-              <Card className="shadow-2xl border border-white/20 bg-white/10 backdrop-blur-2xl hover-lift rounded-3xl overflow-hidden">
+              <Card id="auth-form" className="shadow-2xl border border-white/20 bg-white/10 backdrop-blur-2xl hover-lift rounded-3xl overflow-hidden">
                 {/* Glow effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-pink-500/20 opacity-50 blur-xl" />
                 <div className="relative z-10">
