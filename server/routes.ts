@@ -111,13 +111,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: "user",
       });
 
-      // Call Google Gemini API
-      const { GoogleGenerativeAI } = require("@google/generative-ai");
-      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
+      // Call Google Gemini API using REST API
+      const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
       
       try {
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        
         // Get conversation context for better responses
         const messages = await storage.getMessages(conversationId);
         const contextMessages = messages.slice(-10); // Last 10 messages for context
@@ -132,9 +129,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
           prompt = `Responda em português brasileiro de forma natural e útil: ${content}`;
         }
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const aiResponse = response.text();
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-goog-api-key': apiKey
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{ text: prompt }]
+            }],
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 2048,
+            }
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Gemini API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "Desculpe, não consegui processar sua solicitação.";
 
         // Create AI response message
         const aiMessage = await storage.createMessage({
@@ -149,19 +168,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
       } catch (apiError) {
-        console.error("Catalyst IA API Error:", apiError);
+        console.error("Google Gemini API Error:", apiError);
         
         // Create error response message
         const errorMessage = await storage.createMessage({
           conversationId,
-          content: "Desculpe, ocorreu um erro ao processar sua solicitação. Tente novamente mais tarde.",
+          content: "Desculpe, ocorreu um erro ao processar sua solicitação. Verifique sua conexão e tente novamente.",
           role: "assistant",
         });
 
-        res.status(500).json({
+        res.json({
           userMessage,
           aiMessage: errorMessage,
-          error: "Failed to get AI response",
         });
       }
 

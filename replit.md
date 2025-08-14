@@ -16,12 +16,23 @@ Database preference: SQLite only (no PostgreSQL).
 - Confirmed SQLite database configuration is working correctly
 - All dependencies installed and application running successfully
 
+## Google Gemini Integration (August 14, 2025)
+- Integrated Google Gemini 2.0 Flash API for intelligent chat responses
+- Implemented conversation context awareness (last 10 messages)
+- All responses configured for Portuguese Brazilian language
+- Fixed ES modules compatibility issues (replaced require with fetch API)
+- Added proper error handling for API failures
+
 ## UI/UX Improvements
 - Enhanced authentication page animations with staggered entry effects
 - Corrected login/register button icons (LogIn for login, UserPlus for register)
 - Added modern CSS animations including glow, float, scale-in, and slide effects
 - Improved button interactions with shine effects and enhanced hover states
 - Added animation delays for sequential component reveals
+- Replaced Bot icon with Brain icon for more modern appearance
+- Added "Fazer Login" and "Criar Conta" buttons on main screen for quick access
+- Complete Portuguese Brazilian translation implemented across entire interface
+- Removed generic "assistente para apresentações" text as requested
 
 # System Architecture
 
