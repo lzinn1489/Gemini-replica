@@ -99,9 +99,9 @@ export default function ChatPage() {
       const res = await chatApi.sendMessage(params.conversationId, params.content);
       return res;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ 
-        queryKey: ["/api/conversations", currentConversationId, "messages"] 
+        queryKey: ["/api/conversations", variables.conversationId, "messages"] 
       });
       setNewMessage("");
     },
@@ -114,10 +114,7 @@ export default function ChatPage() {
     },
   });
 
-  const handleNewChat = () => {
-    const title = newMessage.trim() || "Nova Conversa";
-    createConversationMutation.mutate(title);
-  };
+  
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,7 +122,19 @@ export default function ChatPage() {
     if (!newMessage.trim()) return;
 
     if (!currentConversationId) {
-      handleNewChat();
+      // Create conversation with the message content as title and send the message
+      const messageContent = newMessage.trim();
+      const title = messageContent.length > 50 ? messageContent.substring(0, 50) + "..." : messageContent;
+      
+      createConversationMutation.mutate(title, {
+        onSuccess: (conversation) => {
+          // Send the message after conversation is created
+          sendMessageMutation.mutate({
+            conversationId: conversation.id,
+            content: messageContent,
+          });
+        }
+      });
       return;
     }
 
