@@ -1,0 +1,530 @@
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat - Zero-Two AI Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    'sans': ['Inter', 'sans-serif'],
+                },
+                colors: {
+                    primary: '#10A37F',
+                    accent: '#6366F1',
+                    dark: {
+                        bg: '#171717',
+                        surface: '#262626',
+                        border: '#374151',
+                        text: '#D1D5DB',
+                        muted: '#9CA3AF'
+                    }
+                },
+                animation: {
+                    'fade-in': 'fadeIn 0.3s ease-in-out',
+                    'slide-up': 'slideUp 0.2s ease-out',
+                    'typing': 'typing 1.5s infinite'
+                },
+                keyframes: {
+                    fadeIn: {
+                        '0%': { opacity: '0', transform: 'translateY(10px)' },
+                        '100%': { opacity: '1', transform: 'translateY(0)' }
+                    },
+                    slideUp: {
+                        '0%': { transform: 'translateY(100%)' },
+                        '100%': { transform: 'translateY(0)' }
+                    },
+                    typing: {
+                        '0%, 100%': { opacity: '0.2' },
+                        '50%': { opacity: '1' }
+                    }
+                }
+            }
+        },
+        darkMode: 'class',
+    };
+    </script>
+</head>
+<body class="h-full bg-gray-50 dark:bg-dark-bg font-sans transition-colors duration-300">
+    
+    <!-- @COMPONENT: MainLayout [contains sidebar and chat area] -->
+    <div class="flex h-full">
+        
+        <!-- @COMPONENT: Sidebar [conversation history and controls] -->
+        <div class="w-64 bg-white dark:bg-dark-surface border-r border-gray-200 dark:border-dark-border flex flex-col transition-colors duration-300 hidden md:flex">
+            <!-- Header -->
+            <div class="p-4 border-b border-gray-200 dark:border-dark-border">
+                <div class="flex items-center justify-between">
+                    <h1 class="text-lg font-semibold text-gray-900 dark:text-white">Zero-Two AI</h1>
+                    <button class="p-2 text-gray-500 hover:text-gray-700 dark:text-dark-muted dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-plus text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Conversations List -->
+            <div class="flex-1 overflow-y-auto p-2">
+                <div class="space-y-1">
+                    <!-- @MAP: conversations.map(conv => ( -->
+                    <div class="group flex items-center px-3 py-2 text-sm text-gray-700 dark:text-dark-text rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors" data-mock="true">
+                        <i class="fas fa-message text-xs mr-3 text-gray-400"></i>
+                        <span class="flex-1 truncate">Como criar uma aplicação web?</span>
+                        <button class="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all">
+                            <i class="fas fa-trash text-xs"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="group flex items-center px-3 py-2 text-sm text-gray-700 dark:text-dark-text rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors" data-mock="true">
+                        <i class="fas fa-message text-xs mr-3 text-gray-400"></i>
+                        <span class="flex-1 truncate">Explique inteligência artificial</span>
+                        <button class="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all">
+                            <i class="fas fa-trash text-xs"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="group flex items-center px-3 py-2 text-sm text-gray-700 dark:text-dark-text rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors" data-mock="true">
+                        <i class="fas fa-message text-xs mr-3 text-gray-400"></i>
+                        <span class="flex-1 truncate">Dicas de programação Python</span>
+                        <button class="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all">
+                            <i class="fas fa-trash text-xs"></i>
+                        </button>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="p-4 border-t border-gray-200 dark:border-dark-border">
+                <div class="flex items-center justify-between">
+                    <button class="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-dark-text rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-user-circle mr-2"></i>
+                        <span data-mock="true">Usuário</span>
+                    </button>
+                    <button id="themeToggle" class="p-2 text-gray-500 hover:text-gray-700 dark:text-dark-muted dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-moon dark:hidden"></i>
+                        <i class="fas fa-sun hidden dark:inline"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- @COMPONENT: MainChatArea [chat messages and input] -->
+        <div class="flex-1 flex flex-col">
+            
+            <!-- Mobile Header -->
+            <div class="md:hidden flex items-center justify-between p-4 bg-white dark:bg-dark-surface border-b border-gray-200 dark:border-dark-border">
+                <button id="sidebarToggle" class="p-2 text-gray-500 hover:text-gray-700 dark:text-dark-muted dark:hover:text-white rounded-lg">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="text-lg font-semibold text-gray-900 dark:text-white">Zero-Two AI</h1>
+                <button class="p-2 text-gray-500 hover:text-gray-700 dark:text-dark-muted dark:hover:text-white rounded-lg">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+
+            <!-- Chat Messages Area -->
+            <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-6">
+                
+                <!-- Welcome Message -->
+                <div class="max-w-3xl mx-auto text-center py-8" data-mock="true">
+                    <div class="mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <i class="fas fa-robot text-2xl text-white"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Zero-Two AI Assistant</h2>
+                        <p class="text-gray-600 dark:text-dark-muted">Como posso te ajudar hoje?</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                        <button class="p-4 text-left bg-white dark:bg-dark-surface rounded-xl border border-gray-200 dark:border-dark-border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-lightbulb text-primary mr-2"></i>
+                                <span class="font-medium text-gray-900 dark:text-white">Ideias criativas</span>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-dark-muted">Gere ideias inovadoras para seu projeto</p>
+                        </button>
+                        
+                        <button class="p-4 text-left bg-white dark:bg-dark-surface rounded-xl border border-gray-200 dark:border-dark-border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-code text-accent mr-2"></i>
+                                <span class="font-medium text-gray-900 dark:text-white">Ajuda com código</span>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-dark-muted">Resolva problemas de programação</p>
+                        </button>
+                        
+                        <button class="p-4 text-left bg-white dark:bg-dark-surface rounded-xl border border-gray-200 dark:border-dark-border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-pen-fancy text-primary mr-2"></i>
+                                <span class="font-medium text-gray-900 dark:text-white">Escrita criativa</span>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-dark-muted">Crie textos e histórias envolventes</p>
+                        </button>
+                        
+                        <button class="p-4 text-left bg-white dark:bg-dark-surface rounded-xl border border-gray-200 dark:border-dark-border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-graduation-cap text-accent mr-2"></i>
+                                <span class="font-medium text-gray-900 dark:text-white">Aprendizado</span>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-dark-muted">Aprenda novos conceitos facilmente</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sample Messages (hidden by default, shown after first interaction) -->
+                <div id="messageContainer" class="hidden space-y-6">
+                    <!-- User Message Example -->
+                    <div class="flex justify-end animate-fade-in" data-mock="true">
+                        <div class="max-w-xs lg:max-w-2xl px-4 py-3 bg-primary text-white rounded-2xl rounded-br-md shadow-sm">
+                            <p class="text-sm">Olá! Como você pode me ajudar?</p>
+                        </div>
+                    </div>
+
+                    <!-- AI Response Example -->
+                    <div class="flex justify-start animate-fade-in" data-mock="true">
+                        <div class="flex items-start space-x-3 max-w-xs lg:max-w-2xl">
+                            <div class="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-robot text-xs text-white"></i>
+                            </div>
+                            <div class="bg-white dark:bg-dark-surface px-4 py-3 rounded-2xl rounded-bl-md shadow-sm border border-gray-100 dark:border-dark-border">
+                                <p class="text-sm text-gray-900 dark:text-white" data-bind="response.resposta">Olá! Tudo bem? Em que posso te ajudar hoje?</p>
+                                <!-- AI Generated Image Example -->
+                                <div class="mt-3">
+                                    <!-- AI-generated image showing a friendly robot assistant in a modern chat interface -->
+                                    <img src="https://images.unsplash.com/photo-1531746790731-6c087fecd65a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&h=400" 
+                                         alt="AI Assistant Visualization" 
+                                         class="rounded-lg shadow-sm max-w-full h-auto" 
+                                         data-bind="response.url" 
+                                         data-mock-image="true" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading Indicator -->
+                <div id="loadingIndicator" class="hidden flex justify-start animate-fade-in">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-robot text-xs text-white"></i>
+                        </div>
+                        <div class="bg-white dark:bg-dark-surface px-4 py-3 rounded-2xl rounded-bl-md shadow-sm border border-gray-100 dark:border-dark-border">
+                            <div class="flex items-center space-x-1">
+                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-typing"></div>
+                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-typing" style="animation-delay: 0.2s"></div>
+                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-typing" style="animation-delay: 0.4s"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- @COMPONENT: ChatInput [message input and send button] -->
+            <div class="border-t border-gray-200 dark:border-dark-border bg-white dark:bg-dark-surface p-4">
+                <div class="max-w-3xl mx-auto">
+                    <div class="relative">
+                        <textarea 
+                            id="messageInput" 
+                            placeholder="Digite sua mensagem..."
+                            class="w-full resize-none rounded-xl border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-bg px-4 py-3 pr-12 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-dark-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
+                            rows="1"
+                            data-event="keypress:handleEnterKey,input:autoResize"
+                            data-implementation="Auto-resize textarea and handle enter key submission"></textarea>
+                        
+                        <button 
+                            id="sendButton" 
+                            class="absolute right-2 top-2 p-2 text-gray-400 hover:text-primary focus:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                            data-event="click:sendMessage"
+                            data-implementation="Should validate input and call API">
+                            <i class="fas fa-paper-plane text-sm"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Rate Limiting Warning -->
+                    <div id="rateLimitWarning" class="hidden mt-2 text-xs text-amber-600 dark:text-amber-400 flex items-center">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        <span>Aguarde antes de enviar outra mensagem</span>
+                    </div>
+                    
+                    <p class="text-xs text-gray-500 dark:text-dark-muted mt-2 text-center">
+                        Zero-Two AI pode cometer erros. Considere verificar informações importantes.
+                    </p>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: ChatInput -->
+
+        </div>
+        <!-- @END_COMPONENT: MainChatArea -->
+
+    </div>
+    <!-- @END_COMPONENT: MainLayout -->
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden">
+        <div class="w-64 h-full bg-white dark:bg-dark-surface border-r border-gray-200 dark:border-dark-border animate-slide-up">
+            <!-- Mobile Sidebar Content (same as desktop) -->
+            <div class="p-4 border-b border-gray-200 dark:border-dark-border flex items-center justify-between">
+                <h1 class="text-lg font-semibold text-gray-900 dark:text-white">Zero-Two AI</h1>
+                <button id="closeSidebar" class="p-2 text-gray-500 hover:text-gray-700 dark:text-dark-muted dark:hover:text-white rounded-lg">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <!-- Repeat sidebar content here for mobile -->
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="errorModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-dark-surface rounded-xl p-6 max-w-md w-full shadow-2xl animate-fade-in">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mr-4">
+                    <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-400"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Erro na Comunicação</h3>
+                    <p class="text-sm text-gray-600 dark:text-dark-muted">Não foi possível processar sua solicitação</p>
+                </div>
+            </div>
+            <p id="errorMessage" class="text-sm text-gray-700 dark:text-dark-text mb-6" data-bind="error.message">
+                Verifique sua conexão com a internet e tente novamente.
+            </p>
+            <div class="flex justify-end space-x-3">
+                <button id="closeErrorModal" class="px-4 py-2 text-gray-600 dark:text-dark-muted hover:text-gray-800 dark:hover:text-white transition-colors">
+                    Fechar
+                </button>
+                <button id="retryRequest" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-green-700 transition-colors">
+                    Tentar Novamente
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // @STATE: isDarkMode:boolean = false
+            // @STATE: isLoading:boolean = false
+            // @STATE: messages:array = []
+            // @STATE: rateLimitTimer:number = 0
+
+            const API_URL = 'https://zero-two-apis.com.br/gemini/texto/imagem';
+            const API_KEY = 'mdzbackpoha01';
+            const RATE_LIMIT_DELAY = 3000; // 3 seconds between requests
+
+            let lastRequestTime = 0;
+            let isLoading = false;
+
+            // DOM Elements
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const chatMessages = document.getElementById('chatMessages');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const messageContainer = document.getElementById('messageContainer');
+            const rateLimitWarning = document.getElementById('rateLimitWarning');
+            const errorModal = document.getElementById('errorModal');
+            const errorMessage = document.getElementById('errorMessage');
+            const themeToggle = document.getElementById('themeToggle');
+
+            // Theme Management
+            function initTheme() {
+                const isDark = localStorage.getItem('darkMode') === 'true' || 
+                              (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                document.documentElement.classList.toggle('dark', isDark);
+            }
+
+            themeToggle?.addEventListener('click', function() {
+                const isDark = document.documentElement.classList.toggle('dark');
+                localStorage.setItem('darkMode', isDark);
+            });
+
+            // Mobile Sidebar
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const closeSidebar = document.getElementById('closeSidebar');
+
+            sidebarToggle?.addEventListener('click', () => {
+                sidebarOverlay?.classList.remove('hidden');
+            });
+
+            closeSidebar?.addEventListener('click', () => {
+                sidebarOverlay?.classList.add('hidden');
+            });
+
+            sidebarOverlay?.addEventListener('click', (e) => {
+                if (e.target === sidebarOverlay) {
+                    sidebarOverlay.classList.add('hidden');
+                }
+            });
+
+            // Auto-resize textarea
+            messageInput?.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+
+            // Handle Enter key
+            messageInput?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // Send message
+            sendButton?.addEventListener('click', sendMessage);
+
+            function sendMessage() {
+                const message = messageInput?.value.trim();
+                if (!message || isLoading) return;
+
+                // Rate limiting check
+                const now = Date.now();
+                if (now - lastRequestTime < RATE_LIMIT_DELAY) {
+                    showRateLimitWarning();
+                    return;
+                }
+
+                displayUserMessage(message);
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                
+                // TODO: Implement actual API call
+                callAPI(message);
+            }
+
+            function displayUserMessage(message) {
+                messageContainer?.classList.remove('hidden');
+                
+                const userMessageDiv = document.createElement('div');
+                userMessageDiv.className = 'flex justify-end animate-fade-in';
+                userMessageDiv.innerHTML = `
+                    <div class="max-w-xs lg:max-w-2xl px-4 py-3 bg-primary text-white rounded-2xl rounded-br-md shadow-sm">
+                        <p class="text-sm">${escapeHtml(message)}</p>
+                    </div>
+                `;
+                
+                chatMessages.appendChild(userMessageDiv);
+                scrollToBottom();
+            }
+
+            function displayAIResponse(response) {
+                const aiMessageDiv = document.createElement('div');
+                aiMessageDiv.className = 'flex justify-start animate-fade-in';
+                
+                let imageHtml = '';
+                if (response.url) {
+                    imageHtml = `
+                        <div class="mt-3">
+                            <img src="${response.url}" 
+                                 alt="AI Generated Image" 
+                                 class="rounded-lg shadow-sm max-w-full h-auto" 
+                                 onerror="this.style.display='none'" />
+                        </div>
+                    `;
+                }
+                
+                aiMessageDiv.innerHTML = `
+                    <div class="flex items-start space-x-3 max-w-xs lg:max-w-2xl">
+                        <div class="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-robot text-xs text-white"></i>
+                        </div>
+                        <div class="bg-white dark:bg-dark-surface px-4 py-3 rounded-2xl rounded-bl-md shadow-sm border border-gray-100 dark:border-dark-border">
+                            <p class="text-sm text-gray-900 dark:text-white">${escapeHtml(response.resposta || 'Desculpe, não consegui processar sua solicitação.')}</p>
+                            ${imageHtml}
+                        </div>
+                    </div>
+                `;
+                
+                chatMessages.appendChild(aiMessageDiv);
+                scrollToBottom();
+            }
+
+            async function callAPI(query) {
+                isLoading = true;
+                lastRequestTime = Date.now();
+                
+                showLoading();
+                
+                try {
+                    // TODO: Implement actual API call, error handling, and response processing
+                    const url = `${API_URL}?query=${encodeURIComponent(query)}&apikey=${API_KEY}`;
+                    
+                    // Simulate API call for mockup
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Mock successful response based on web-sourced data
+                    const mockResponse = {
+                        status: true,
+                        criador: "@lucas_mod_domina",
+                        url: "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&h=400",
+                        resposta: "Olá! Entendi sua pergunta. Posso te ajudar com informações detalhadas sobre esse tópico. Aqui está uma explicação completa..."
+                    };
+                    
+                    hideLoading();
+                    displayAIResponse(mockResponse);
+                    
+                } catch (error) {
+                    hideLoading();
+                    showError('Erro ao comunicar com a API. Tente novamente.');
+                    console.error('API Error:', error);
+                } finally {
+                    isLoading = false;
+                }
+            }
+
+            function showLoading() {
+                loadingIndicator?.classList.remove('hidden');
+                sendButton?.setAttribute('disabled', 'true');
+                scrollToBottom();
+            }
+
+            function hideLoading() {
+                loadingIndicator?.classList.add('hidden');
+                sendButton?.removeAttribute('disabled');
+            }
+
+            function showRateLimitWarning() {
+                rateLimitWarning?.classList.remove('hidden');
+                setTimeout(() => {
+                    rateLimitWarning?.classList.add('hidden');
+                }, 3000);
+            }
+
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorModal?.classList.remove('hidden');
+            }
+
+            function scrollToBottom() {
+                setTimeout(() => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 100);
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            // Error Modal Event Listeners
+            document.getElementById('closeErrorModal')?.addEventListener('click', () => {
+                errorModal?.classList.add('hidden');
+            });
+
+            document.getElementById('retryRequest')?.addEventListener('click', () => {
+                errorModal?.classList.add('hidden');
+                // TODO: Implement retry functionality
+            });
+
+            // Initialize
+            initTheme();
+            messageInput?.focus();
+        })();
+    </script>
+</body>
+</html>
