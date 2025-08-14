@@ -1,10 +1,15 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { setupVite, serveStatic } from "./vite";
 import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
+import session from "express-session";
+import { createRequire } from "module";
+import path from "path";
+
+const require = createRequire(import.meta.url);
 
 const app = express();
 
@@ -216,54 +221,8 @@ app.get('/api/status', (req, res) => {
   try {
     log("🚀 Starting Catalyst IA Server...");
 
+    // This will be handled later in the function
     const server = await registerRoutes(app);
-
-    // Enhanced global error handler
-    app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
-      const timestamp = new Date().toISOString();
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-      const stack = process.env.NODE_ENV === 'development' ? err.stack : undefined;
-
-      // Log error with context
-      log(`🔴 [ERROR] ${timestamp} - ${req.method} ${req.path} - ${status} - ${message}`);
-      if (stack && process.env.NODE_ENV === 'development') {
-        console.error(stack);
-      }
-
-      // Professional error response
-      res.status(status).json({
-        error: status < 500 || process.env.NODE_ENV === 'development' ? message : 'Internal server error',
-        timestamp,
-        path: req.path,
-        method: req.method,
-        requestId: req.headers['x-request-id'] || 'unknown',
-        ...(stack && process.env.NODE_ENV === 'development' && { stack: stack.split('\n').slice(0, 10) }),
-      });
-    });
-
-    // 404 handler for API routes
-    app.use('/api/*', (req, res) => {
-      res.status(404).json({
-        error: 'API endpoint not found',
-        path: req.originalUrl,
-        method: req.method,
-        timestamp: new Date().toISOString(),
-        availableEndpoints: [
-          'GET /health',
-          'GET /api/status',
-          'GET /api/user',
-          'POST /api/login',
-          'POST /api/register',
-          'POST /api/logout',
-          'GET /api/conversations',
-          'POST /api/conversations',
-          'DELETE /api/conversations/:id',
-          'GET /api/conversations/:id/messages',
-          'POST /api/conversations/:id/messages'
-        ]
-      });
-    });
 
     // Setup Vite for development or serve static files for production
     if (app.get("env") === "development") {
@@ -271,6 +230,15 @@ app.get('/api/status', (req, res) => {
     } else {
       serveStatic(app);
     }
+
+    // Fallback to serve index.html for SPA routing
+    app.get("*", (req, res) => {
+      if (req.path.startsWith("/api/")) {
+        res.status(404).json({ error: "API route not found" });
+      } else {
+        res.sendFile(path.resolve("client/dist/index.html"));
+      }
+    });
 
     // Server startup
     const port = parseInt(process.env.PORT || '5000', 10);

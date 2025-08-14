@@ -20,17 +20,9 @@ export const chatApi = {
 
   // Delete conversation
   deleteConversation: async (conversationId: string) => {
-    const response = await fetch(`/api/conversations/${conversationId}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to delete conversation");
-    }
-
+    const response = await apiRequest("DELETE", `/api/conversations/${conversationId}`);
     return response.json();
-  },
+  },</old_str>
 
   async getMessages(conversationId: string): Promise<Message[]> {
     const response = await apiRequest("GET", `/api/conversations/${conversationId}/messages`);
@@ -44,32 +36,13 @@ export const chatApi = {
 
   // Get user profile
   getUserProfile: async () => {
-    const response = await fetch("/api/user/profile", {
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch user profile");
-    }
-
+    const response = await apiRequest("GET", "/api/user/profile");
     return response.json();
   },
 
   // Update user profile
   updateUserProfile: async (data: { name?: string; bio?: string; preferences?: Record<string, any> }) => {
-    const response = await fetch("/api/user/profile", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to update user profile");
-    }
-
+    const response = await apiRequest("PUT", "/api/user/profile", data);
     return response.json();
   },
 };
