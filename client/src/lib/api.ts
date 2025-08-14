@@ -1,3 +1,4 @@
+
 import { apiRequest } from "./queryClient";
 import type { Conversation, Message } from "@shared/schema";
 
@@ -22,7 +23,7 @@ export const chatApi = {
   deleteConversation: async (conversationId: string) => {
     const response = await apiRequest("DELETE", `/api/conversations/${conversationId}`);
     return response.json();
-  },</old_str>
+  },
 
   async getMessages(conversationId: string): Promise<Message[]> {
     const response = await apiRequest("GET", `/api/conversations/${conversationId}/messages`);
