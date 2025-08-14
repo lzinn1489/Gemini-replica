@@ -49,7 +49,7 @@ export default function ChatPage() {
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [currentConversationId]);
+  }, [messages, currentConversationId]);
 
   // Focus input after sending message
   useEffect(() => {
@@ -99,13 +99,13 @@ export default function ChatPage() {
       return res;
     },
     onSuccess: (data, variables) => {
+      // Invalidate both conversations list and specific conversation messages
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
       queryClient.invalidateQueries({ 
         queryKey: ["/api/conversations", variables.conversationId, "messages"] 
       });
-      // Only clear if not already cleared (to avoid clearing when creating new conversation)
-      if (newMessage) {
-        setNewMessage("");
-      }
+      // Clear the input
+      setNewMessage("");
     },
     onError: (error: Error) => {
       toast({
@@ -135,6 +135,9 @@ export default function ChatPage() {
         onSuccess: (conversation) => {
           // Set the current conversation ID immediately
           setCurrentConversationId(conversation.id);
+          
+          // Force refresh conversations list
+          queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
           
           // Send the message after conversation is created
           sendMessageMutation.mutate({

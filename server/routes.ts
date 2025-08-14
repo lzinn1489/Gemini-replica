@@ -162,9 +162,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           role: "assistant",
         });
 
+        // Return both messages with conversation ID for consistency
         res.json({
-          userMessage,
-          aiMessage,
+          userMessage: userMessage,
+          aiMessage: aiMessage,
+          conversationId: conversationId
         });
 
       } catch (apiError) {
@@ -177,9 +179,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           role: "assistant",
         });
 
+        // Return both messages with conversation ID for consistency
         res.json({
-          userMessage,
+          userMessage: userMessage,
           aiMessage: errorMessage,
+          conversationId: conversationId
         });
       }
 
