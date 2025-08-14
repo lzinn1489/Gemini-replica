@@ -41,14 +41,14 @@ export function setupAuth(app: Express) {
   passport.use(
     new LocalStrategy(
       {
-        usernameField: "email",
+        usernameField: "username",
         passwordField: "password",
       },
-      async (email, password, done) => {
+      async (username, password, done) => {
         try {
-          const user = await storage.getUserByEmail(email);
+          const user = await storage.getUserByUsername(username);
           if (!user || !(await comparePasswords(password, user.password))) {
-            return done(null, false, { message: "Email ou senha incorretos" });
+            return done(null, false, { message: "Nome de usuário ou senha incorretos" });
           }
           return done(null, user);
         } catch (error) {
@@ -115,7 +115,7 @@ export function setupAuth(app: Express) {
         return next(err);
       }
       if (!user) {
-        return res.status(401).json({ message: info?.message || "Email ou senha incorretos" });
+        return res.status(401).json({ message: info?.message || "Nome de usuário ou senha incorretos" });
       }
       req.login(user, (err) => {
         if (err) return next(err);

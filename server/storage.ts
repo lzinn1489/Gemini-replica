@@ -88,6 +88,9 @@ export class SQLiteStorage implements IStorage {
     const user: User = {
       ...insertUser,
       id,
+      name: null,
+      bio: null,
+      preferences: null,
       createdAt: new Date(),
     };
 
@@ -171,17 +174,10 @@ export class SQLiteStorage implements IStorage {
     if (data.bio !== undefined) updateData.bio = data.bio;
     if (data.preferences !== undefined) updateData.preferences = JSON.stringify(data.preferences);
 
-    const stmt = db.prepare(`
-      UPDATE users 
-      SET ${Object.keys(updateData).map(key => `${key} = ?`).join(', ')}
-      WHERE id = ?
-    `);
-
-    const result = stmt.run(...Object.values(updateData), userId);
-
-    if (result.changes === 0) {
-      throw new Error("User not found");
-    }
+    await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, userId));
 
     // Return updated user
     return this.getUser(userId);
@@ -189,7 +185,7 @@ export class SQLiteStorage implements IStorage {
 
   async getUserProfile(userId: string): Promise<any> {
     const user = await this.getUser(userId);
-    if (user && user.preferences) {
+    if (user && user.preferences && typeof user.preferences === 'string') {
       try {
         user.preferences = JSON.parse(user.preferences);
       } catch {
