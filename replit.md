@@ -5,6 +5,16 @@ This is a full-stack chat application built with React, Express, and TypeScript.
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
+Database preference: SQLite only (no PostgreSQL).
+
+# Recent Changes (August 2025)
+
+## Migration to Replit Environment
+- Successfully migrated from Replit Agent to standard Replit environment
+- Fixed duplicate function exports in not-found.tsx
+- Added navigation buttons to login/auth page in loading states and 404 page
+- Confirmed SQLite database configuration is working correctly
+- All dependencies installed and application running successfully
 
 # System Architecture
 
