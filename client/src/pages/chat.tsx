@@ -46,18 +46,6 @@ export default function ChatPage() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [safeMessages, currentConversationId]);
-
-  // Focus input after sending message
-  useEffect(() => {
-    if (!newMessage && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [newMessage]);
-
   // Fetch conversations
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery<Conversation[]>({
     queryKey: ["/api/conversations"],
@@ -72,6 +60,18 @@ export default function ChatPage() {
 
   // Ensure messages is always an array
   const safeMessages = messages || [];
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [safeMessages, currentConversationId]);
+
+  // Focus input after sending message
+  useEffect(() => {
+    if (!newMessage && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [newMessage]);
 
   // Create new conversation
   const createConversationMutation = useMutation({
