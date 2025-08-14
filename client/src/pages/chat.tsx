@@ -49,7 +49,7 @@ export default function ChatPage() {
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, currentConversationId]);
+  }, [safeMessages, currentConversationId]);
 
   // Focus input after sending message
   useEffect(() => {
@@ -69,6 +69,9 @@ export default function ChatPage() {
     queryKey: ["/api/conversations", currentConversationId, "messages"],
     enabled: !!currentConversationId,
   });
+
+  // Ensure messages is always an array
+  const safeMessages = messages || [];
 
   // Create new conversation
   const createConversationMutation = useMutation({
@@ -233,7 +236,7 @@ export default function ChatPage() {
                   </h1>
                   <p className="text-xs text-muted-foreground">
                     {currentConversation 
-                      ? `${messages.length} mensagens` 
+                      ? `${safeMessages.length} mensagens` 
                       : "Assistente Catalyst IA para qualquer apresentação"
                     }
                   </p>
@@ -336,7 +339,7 @@ export default function ChatPage() {
             ) : (
               // Messages List
               <div className="space-y-6 max-w-4xl mx-auto">
-                {messages.map((message, index) => (
+                {safeMessages.map((message, index) => (
                   <div 
                     key={message.id} 
                     className={`flex gap-4 animate-fade-in ${
@@ -465,7 +468,7 @@ export default function ChatPage() {
               <div className="flex items-center gap-4">
                 <span>✨ Catalyst IA especialista em apresentações</span>
                 {currentConversation && (
-                  <span>💬 {messages.length} mensagens nesta conversa</span>
+                  <span>💬 {safeMessages.length} mensagens nesta conversa</span>
                 )}
               </div>
               
